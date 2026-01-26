@@ -1,0 +1,12 @@
+# Vaultwarden runtime data (never commit)
+data/
+*.log
+
+# Local environment secrets (never commit)
+.env
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
