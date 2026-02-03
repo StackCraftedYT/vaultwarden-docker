@@ -94,9 +94,22 @@ Vaultwarden listens on:
 This is intentional for reverse proxy usage.
 
 Test locally:
+Use SSH local port forwarding to forward the VPS's localhost:8081 to your machine, then curl the forwarded port locally.
+
+Example (from Windows PowerShell or CMD using OpenSSH ssh): 
 
 ``` bash
-curl http://127.0.0.1:8081
+ssh -L 8081:127.0.0.1:8081 username@vps.example.com
+```
+Leave that SSH session open on a new terminal tab.
+On your PC (new terminal) test with curl:
+
+``` bash
+curl -I http://127.0.0.1:8081
+```
+Expected output begins with the HTTP status line, e.g.:
+``` bash
+HTTP/1.1 200 OK
 ```
 
 ------------------------------------------------------------------------
