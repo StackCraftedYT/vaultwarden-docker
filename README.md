@@ -175,8 +175,66 @@ https://stackcraftedyt.github.io/stackcrafted-org/tutorials/
 
 ------------------------------------------------------------------------
 
-## ✅ Status
 
-This repository contains only container deployment.
+## 🔐 Secure Admin Token (Argon2)
 
-SSL and domain configuration are handled in the tutorial documentation.
+To enable the admin panel (`/admin`) securely, generate a hashed admin token with Argon2:
+
+```bash
+echo -n "YourStrongPassword" | argon2 "$(openssl rand -base64 32)" -e -id -k 65540 -t 3 -p 4 | sed 's#\$#\$\$#g'
+```
+
+## 🚦 Nginx Proxy Manager (NPM) Setup
+For a fully automated HTTPS setup with Let’s Encrypt, you can deploy Nginx Proxy Manager alongside Vaultwarden.
+
+1. Create a directory for NPM:
+```bash
+mkdir -p proxy-examples/nginx-proxy-manager
+cd proxy-examples/nginx-proxy-manager
+```
+
+2. Create docker-compose.yml:
+ 
+ ```yaml
+version: '3.8'
+
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '127.0.0.1:81:81'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - web-net
+
+networks:
+  web-net:
+    external: true
+ ```
+3. Create the shared network (once):
+```bash
+docker network create web-net
+```
+4. Start NPM:
+```bash
+docker compose up -d
+```
+5. Access the admin panel via SSH tunnel:
+```bash
+   ssh -L 8181:localhost:81 user@your-server-ip
+```
+6. Then open http://localhost:8181 in your browser.
+   
+   vault.yourdomain.tld → forward to vaultwarden:80
+
+npm.yourdomain.tld → forward to nginx-proxy-manager:81 (optional, for secure admin access)
+
+Enable SSL using a Cloudflare wildcard certificate or Let’s Encrypt.
+
+
