@@ -8,7 +8,7 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - '127.0.0.1:81:81'
+      - '127.0.0.1:81:81'   # Admin UI accessible only via SSH tunnel or proxy
     volumes:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
