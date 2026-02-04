@@ -1,55 +1,44 @@
-
-markdown
-# Vaultwarden (Bitwarden) - Docker Deployment
-
+Vaultwarden (Bitwarden) - Docker Deployment
 Self-host Vaultwarden (lightweight Bitwarden server) using Docker and Docker Compose with persistent storage.
 
-This repository is part of the **StackCrafted** project: https://stackcraftedyt.github.io/stackcrafted-org/
+This repository is part of the StackCrafted project: https://stackcraftedyt.github.io/stackcrafted-org/
 
----
-
-## 🔁 Important
-
+🔁 Important
 Anywhere you see:
 
-    vault.YOURDOMAIN.TLD
-
-Replace it with **your own domain or subdomain**.
+text
+vault.YOURDOMAIN.TLD
+Replace it with your own domain or subdomain.
 
 Example:
 
-    vault.example.com
+text
+vault.example.com
+📦 What This Deploys
+Vaultwarden server
 
----
+Persistent data volume
 
-## 📦 What This Deploys
+Exposed on local port 8081 (for reverse proxy use)
 
-*   Vaultwarden server
-*   Persistent data volume
-*   Exposed on local port `8081` (for reverse proxy use)
+You can place this behind Nginx, Traefik, Caddy, Nginx Proxy Manager, or any reverse proxy of your choice.
 
-You can place this behind **Nginx**, **Traefik**, **Caddy**, **Nginx Proxy Manager**, or any reverse proxy of your choice.
+📁 Folder Structure
+text
+vaultwarden-docker/
+├── docker-compose.yml
+├── .env
+└── data/
+⚙️ Requirements
+Linux server (VPS or local)
 
----
+Docker installed
 
-## 📁 Folder Structure
-
-    vaultwarden-docker/
-    ├── docker-compose.yml
-    ├── .env
-    └── data/
-
----
-
-## ⚙️ Requirements
-
-*   Linux server (VPS or local)
-*   Docker installed
-*   Docker Compose plugin installed
+Docker Compose plugin installed
 
 Check:
 
-```bash
+bash
 docker --version
 docker compose version
 🚀 Basic Setup
@@ -103,38 +92,35 @@ Copy the entire output (it will start with $$argon2id...).
 Paste it as the value for the ADMIN_TOKEN variable in your .env file.
 
 🚦 Nginx Proxy Manager (NPM) Setup
-## 🚦 Nginx Proxy Manager (NPM) Setup
-
 For an automated HTTPS setup with Let’s Encrypt, you can deploy Nginx Proxy Manager.
 
-### 1. Create Directory and Configuration
+1. Create Directory and Configuration
+bash
+mkdir -p proxy-examples/nginx-proxy-manager
+cd proxy-examples/nginx-proxy-manager
+Create a docker-compose.yml file with the following content:
 
-...
-
-Create a `docker-compose.yml` file with the following content:
-
+yaml
 version: '3.8'
 
 services:
- app:
-   image: 'jc21/nginx-proxy-manager:latest'
-   container_name: nginx-proxy-manager
-   restart: unless-stopped
-   ports:
-     - '80:80'
-     - '443:443'
-     - '127.0.0.1:81:81'
-   volumes:
-     - ./data:/data
-     - ./letsencrypt:/etc/letsencrypt
-   networks:
-     - web-net
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '127.0.0.1:81:81'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - web-net
 
 networks:
- web-net:
-   external: true
-...
-
+  web-net:
+    external: true
 2. Create Shared Network and Start NPM
 Create the Docker network (only needed once):
 
@@ -201,4 +187,3 @@ Tutorial Website: https://stackcraftedyt.github.io/stackcrafted-org/tutorials/
 
 Official Vaultwarden Wiki: https://github.com/dani-garcia/vaultwarden/wiki
 
-Fix broken YAML formatting in README"
