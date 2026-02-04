@@ -103,35 +103,38 @@ Copy the entire output (it will start with $$argon2id...).
 Paste it as the value for the ADMIN_TOKEN variable in your .env file.
 
 🚦 Nginx Proxy Manager (NPM) Setup
+## 🚦 Nginx Proxy Manager (NPM) Setup
+
 For an automated HTTPS setup with Let’s Encrypt, you can deploy Nginx Proxy Manager.
 
-1. Create Directory and Configuration
-bash
-mkdir -p proxy-examples/nginx-proxy-manager
-cd proxy-examples/nginx-proxy-manager
-Create a docker-compose.yml file with the following content:
+### 1. Create Directory and Configuration
 
-yaml
+...
+
+Create a `docker-compose.yml` file with the following content:
+
 version: '3.8'
 
 services:
-  app:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-      - '127.0.0.1:81:81'
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-    networks:
-      - web-net
+ app:
+   image: 'jc21/nginx-proxy-manager:latest'
+   container_name: nginx-proxy-manager
+   restart: unless-stopped
+   ports:
+     - '80:80'
+     - '443:443'
+     - '127.0.0.1:81:81'
+   volumes:
+     - ./data:/data
+     - ./letsencrypt:/etc/letsencrypt
+   networks:
+     - web-net
 
 networks:
-  web-net:
-    external: true
+ web-net:
+   external: true
+...
+
 2. Create Shared Network and Start NPM
 Create the Docker network (only needed once):
 
@@ -197,3 +200,5 @@ docker compose down
 Tutorial Website: https://stackcraftedyt.github.io/stackcrafted-org/tutorials/
 
 Official Vaultwarden Wiki: https://github.com/dani-garcia/vaultwarden/wiki
+
+Fix broken YAML formatting in README"
