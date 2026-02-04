@@ -1,14 +1,20 @@
+version: '3.8'
+
 services:
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
     restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      - DOMAIN=https://vault.stackcrafted.org
-      - TZ=Europe/London
+    ports:
+      - "8081:80"
     volumes:
       - ./data:/data
-    ports:
-      - "127.0.0.1:8080:80"
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - DOMAIN=${DOMAIN}
+    networks:
+      - web-net
+
+networks:
+  web-net:
+    external: true
