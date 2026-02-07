@@ -7,16 +7,16 @@ This example shows how to expose Vaultwarden using Nginx Proxy Manager with HTTP
 ## Proxy Host Settings
 
 Domain Names:
-vault.stackcrafted.org
+vault.yourdomain.tld
 
 Scheme:
 http
 
 Forward Hostname / IP:
-127.0.0.1
+vaultwarden
 
 Forward Port:
-8080
+80
 
 Enable:
 - Block Common Exploits
@@ -37,4 +37,4 @@ Enable:
 
 Vaultwarden will be reachable at:
 
-https://vault.stackcrafted.org
+https://vault.yourdomain.tld
