@@ -144,7 +144,6 @@ cd proxy-examples/nginx-proxy-manager
 Create a `docker-compose.yml` file with the following content:
 
 ```yaml
-version: '3.8'
 
 services:
   app:
