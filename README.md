@@ -1,51 +1,62 @@
-# Vaultwarden (Bitwarden) - Docker Deployment
+# Vaultwarden (Bitwarden Alternative) — Docker Deployment
 
-Self-host Vaultwarden (lightweight Bitwarden server) using Docker and Docker Compose with persistent storage.
+Deploy Vaultwarden securely using Docker, localhost binding, and reverse proxy readiness.
 
-This repository is part of the **StackCrafted** project: https://stackcraftedyt.github.io/stackcrafted-org/
+This guide matches the StackCrafted tutorial:
 
----
-
-## 🔁 Important
-
-Anywhere you see:
-
-    vault.YOURDOMAIN.TLD
-
-Replace it with **your own domain or subdomain**.
-
-Example:
-
-    vault.example.com
+https://stackcrafted.org/tutorials/vaultwarden/
 
 ---
 
-## 📦 What This Deploys
+# Overview
 
-*   Vaultwarden server
-*   Persistent data volume
-*   Exposed on local port `8081` (for reverse proxy use)
+Vaultwarden is a lightweight, open-source Bitwarden-compatible password manager designed for self-hosting.
 
-You can place this behind **Nginx**, **Traefik**, **Caddy**, **Nginx Proxy Manager**, or any reverse proxy of your choice.
+This deployment is:
 
----
-
-## 📁 Folder Structure
-
-    vaultwarden-docker/
-    ├── docker-compose.yml
-    ├── .env
-    └── data/
+- Bound to localhost (`127.0.0.1`)
+- Reverse proxy ready
+- Secure admin token supported
+- Persistent data storage enabled
 
 ---
 
-## ⚙️ Requirements
+# Architecture
 
-*   Linux server (VPS or local)
-*   Docker installed
-*   Docker Compose plugin installed
+```
+Internet
+   │
+Reverse Proxy (Nginx Proxy Manager / Traefik / Caddy)
+   │
+Docker network: web-net
+   │
+Vaultwarden container
+   │
+Persistent data folder
+```
 
-Check:
+Vaultwarden itself is NOT exposed publicly.
+
+---
+
+# Folder Structure
+
+```
+vaultwarden-docker/
+├── docker-compose.yml
+├── .env.example
+└── data/
+```
+
+---
+
+# Requirements
+
+- Linux server
+- Docker
+- Docker Compose plugin
+
+Verify installation:
 
 ```bash
 docker --version
@@ -54,182 +65,138 @@ docker compose version
 
 ---
 
-## 🚀 Basic Setup
+# Setup
 
-### 1. Clone Repository
+## 1. Clone repository
 
 ```bash
 git clone https://github.com/StackCraftedYT/vaultwarden-docker.git
 cd vaultwarden-docker
 ```
 
-### 2. Configure Environment
+---
 
-Copy the example environment file and edit it:
+## 2. Create Docker network (required once)
+
+```bash
+docker network create web-net
+```
+
+---
+
+## 3. Configure environment file
 
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-Set your `DOMAIN` (e.g., `https://vault.example.com`). For the `ADMIN_TOKEN`, see the **Secure Admin Token** section below.
+Example:
 
-### 3. Start Vaultwarden
+```env
+DOMAIN=https://vault.yourdomain.tld
+ADMIN_TOKEN=your_secure_token
+```
+
+Generate secure token:
+
+```bash
+openssl rand -base64 48
+```
+
+---
+
+## 4. Start Vaultwarden
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Verify Container
+---
+
+## 5. Verify container
 
 ```bash
 docker ps
 ```
 
-You should see a running container named `vaultwarden`.
-
----
-
-## 🔌 Ports & Local Testing
-
-Vaultwarden listens on `127.0.0.1:8081`. This is intentional for reverse proxy usage.
-
-You can test it locally using SSH port forwarding:
-
-```bash
-# On your local machine, run:
-ssh -L 8081:127.0.0.1:8081 username@your-vps-ip
-```
-
-Leave that SSH session open. In a new local terminal, test the connection:
-
-```bash
-curl -I http://127.0.0.1:8081
-```
-
-Expected output begins with:
+Expected output:
 
 ```
-HTTP/1.1 200 OK
+vaultwarden   Up ...
 ```
 
 ---
 
-## 🔐 Secure Admin Token (Argon2)
+# Access
 
-To securely enable the admin panel (`/admin`), generate a hashed token using Argon2.
+Vaultwarden listens locally:
 
-1.  Ensure `argon2` is installed (e.g., `sudo apt install argon2`).
-2.  Run the following command:
+```
+http://127.0.0.1:8081
+```
 
-    ```bash
-    echo -n "YourStrongPassword" | argon2 "$(openssl rand -base64 32)" -e -id -k 65540 -t 3 -p 4 | sed 's#\$#\$\$#g'
-    ```
-3.  Copy the **entire output** (it will start with `$$argon2id...`).
-4.  Paste it as the value for the `ADMIN_TOKEN` variable in your `.env` file.
+Access externally via reverse proxy:
+
+```
+https://vault.yourdomain.tld
+```
+
+Admin panel:
+
+```
+https://vault.yourdomain.tld/admin
+```
 
 ---
 
-## 🚦 Nginx Proxy Manager (NPM) Setup
+# Security Notes
 
-For an automated HTTPS setup with Let’s Encrypt, you can deploy Nginx Proxy Manager.
+This deployment:
 
-### 1. Create Directory and Configuration
-
-```bash
-mkdir -p proxy-examples/nginx-proxy-manager
-cd proxy-examples/nginx-proxy-manager
-```
-
-Create a `docker-compose.yml` file with the following content:
-
-```yaml
-
-services:
-  app:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-      - '127.0.0.1:81:81'
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-    networks:
-      - web-net
-
-networks:
-  web-net:
-    external: true
-```
-
-### 2. Create Shared Network and Start NPM
-
-Create the Docker network (only needed once):
-
-```bash
-docker network create web-net
-```
-
-Start the NPM container:
-
-```bash
-docker compose up -d
-```
-
-### 3. Access the NPM Admin Panel
-
-For security, the admin panel is bound to localhost. Access it via an SSH tunnel from your local machine:
-
-```bash
-ssh -L 8181:localhost:81 user@your-server-ip
-```
-
-Then open `http://localhost:8181` in your browser. The default login is `admin@example.com` / `changeme`.
-
-### 4. Configure Proxy Hosts in NPM
-
-In the NPM admin interface, add a new **Proxy Host**:
-
-*   **Domain Names:** `vault.yourdomain.tld`
-*   **Scheme:** `http`
-*   **Forward Hostname / IP:** `vaultwarden`
-*   **Forward Port:** `80`
-*   **SSL:** Select your certificate (e.g., Let's Encrypt or Cloudflare) and enable **"Force SSL"**.
-
-*(Optional)* To access the NPM admin panel itself via HTTPS, you can create a second proxy host:
-*   **Domain Names:** `npm.yourdomain.tld`
-*   **Forward Hostname / IP:** `host.docker.internal`
-*   **Forward Port:** `81`
+- prevents direct public access
+- requires reverse proxy
+- supports secure admin tokens
+- isolates Vaultwarden on Docker network
 
 ---
 
-## 🌐 Reverse Proxy (Required for Production)
+# Reverse Proxy (Recommended)
 
-You **must** place Vaultwarden behind a reverse proxy with HTTPS for a production setup. This guide provides instructions for **Nginx Proxy Manager** above. Other supported options include:
+Supported proxies:
 
-*   Nginx
-*   Caddy
-*   Traefik
+- Nginx Proxy Manager
+- Traefik
+- Caddy
+- Nginx
+
+Example forward target:
+
+```
+vaultwarden:80
+```
+
+Docker network:
+
+```
+web-net
+```
 
 ---
 
-## 🔐 Access (After Reverse Proxy + SSL)
+# Data Persistence
 
-*   **Vault URL:** `https://vault.YOURDOMAIN.TLD`
-*   **Admin Panel:** `https://vault.YOURDOMAIN.TLD/admin` (requires the `ADMIN_TOKEN` set earlier)
+Vaultwarden data is stored in:
+
+```
+./data
+```
+
+Do NOT delete unless wiping instance.
 
 ---
 
-## 🧱 Data Persistence
-
-All Vaultwarden data is stored in the `./data` directory. **Do not delete this folder** unless you intend to wipe your Vaultwarden instance completely.
-
----
-
-## 🔄 Updating
+# Updating
 
 ```bash
 docker compose pull
@@ -238,7 +205,7 @@ docker compose up -d
 
 ---
 
-## 🧯 Stopping
+# Stop container
 
 ```bash
 docker compose down
@@ -246,7 +213,12 @@ docker compose down
 
 ---
 
-## 📚 Related Resources
+# Tutorial and Documentation
 
-*   **Tutorial Website:** https://stackcraftedyt.github.io/stackcrafted-org/tutorials/
-*   **Official Vaultwarden Wiki:** https://github.com/dani-garcia/vaultwarden/wiki
+Full tutorial:
+
+https://stackcrafted.org/tutorials/vaultwarden/
+
+StackCrafted project:
+
+https://github.com/StackCraftedYT
