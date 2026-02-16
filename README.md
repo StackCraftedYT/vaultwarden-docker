@@ -218,8 +218,8 @@ You **must** place Vaultwarden behind a reverse proxy with HTTPS for a productio
 
 ## 🔐 Access (After Reverse Proxy + SSL)
 
-*   **Vault URL:** `https://vault.yourdomain.tld`
-*   **Admin Panel:** `https://vault.yourdomain.tld/admin` (requires the `ADMIN_TOKEN` set earlier)
+*   **Vault URL:** `https://vault.YOURDOMAIN.TLD`
+*   **Admin Panel:** `https://vault.YOURDOMAIN.TLD/admin` (requires the `ADMIN_TOKEN` set earlier)
 
 ---
 
